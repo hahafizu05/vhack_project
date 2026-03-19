@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fraud & Anomaly Risk Console</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #050816;
+        --bg-card: #0f172a;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.15);
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --danger: #f97373;
+        --warning: #facc15;
+        --success: #4ade80;
+      }
+      * {
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top left, #1d4ed8 0, transparent 55%),
+          radial-gradient(circle at bottom right, #22c55e 0, transparent 55%),
+          var(--bg);
+        color: var(--text);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        padding: 24px;
+      }
+      .shell {
+        width: 100%;
+        max-width: 1120px;
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2.2fr);
+        gap: 20px;
+      }
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        box-shadow:
+          0 18px 40px rgba(15, 23, 42, 0.9),
+          inset 0 0 0 1px rgba(15, 23, 42, 0.9);
+        padding: 20px 22px;
+        backdrop-filter: blur(18px);
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        gap: 12px;
+      }
+      .title-block h1 {
+        font-size: 20px;
+        letter-spacing: 0.02em;
+        margin: 0 0 2px;
+      }
+      .title-block p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .pill {
+        font-size: 11px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(56, 189, 248, 0.5);
+        background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.28), transparent 55%);
+        color: #e0f2fe;
+        white-space: nowrap;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 18px;
+      }
+      @media (max-width: 700px) {
+        .form-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input,
+      select {
+        border-radius: 11px;
+        border: 1px solid rgba(148, 163, 184, 0.38);
+        background-color: rgba(15, 23, 42, 0.85);
+        color: var(--text);
+        padding: 8px 10px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      }
+      input::placeholder {
+        color: rgba(148, 163, 184, 0.65);
+      }
+      input:focus,
+      select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+        background-color: rgba(15, 23, 42, 0.98);
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        gap: 10px;
+      }
+      .row span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .btn-primary {
+        border-radius: 999px;
+        border: none;
+        padding: 9px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #0b1120;
+        background: linear-gradient(135deg, #38bdf8, #22c55e);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow:
+          0 10px 24px rgba(56, 189, 248, 0.4),
+          0 0 0 1px rgba(15, 23, 42, 0.85);
+        transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      }
+      .btn-primary span.icon {
+        font-size: 16px;
+        line-height: 1;
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        box-shadow:
+          0 14px 30px rgba(56, 189, 248, 0.45),
+          0 0 0 1px rgba(15, 23, 42, 0.9);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow:
+          0 6px 14px rgba(56, 189, 248, 0.3),
+          0 0 0 1px rgba(15, 23, 42, 0.9);
+      }
+      .btn-primary[disabled] {
+        opacity: 0.6;
+        cursor: default;
+        transform: none;
+        box-shadow:
+          0 0 0 1px rgba(15, 23, 42, 0.8),
+          0 8px 18px rgba(15, 23, 42, 0.85);
+      }
+      .status {
+        font-size: 12px;
+        min-height: 16px;
+      }
+      .status.error {
+        color: var(--danger);
+      }
+      .status.ok {
+        color: var(--muted);
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .badge.approve {
+        background: rgba(34, 197, 94, 0.12);
+        color: var(--success);
+        border: 1px solid rgba(74, 222, 128, 0.5);
+      }
+      .badge.flag {
+        background: rgba(250, 204, 21, 0.1);
+        color: var(--warning);
+        border: 1px solid rgba(250, 204, 21, 0.55);
+      }
+      .badge.block {
+        background: rgba(239, 68, 68, 0.12);
+        color: var(--danger);
+        border: 1px solid rgba(248, 113, 113, 0.6);
+      }
+      .score-number {
+        font-size: 36px;
+        font-weight: 600;
+      }
+      .score-sub {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .bar {
+        height: 9px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #22c55e, #facc15, #f97373);
+        position: relative;
+        overflow: hidden;
+        margin-top: 14px;
+      }
+      .bar > .cursor {
+        position: absolute;
+        top: -2px;
+        width: 2px;
+        height: 13px;
+        background: #e5e7eb;
+        box-shadow:
+          0 0 0 1px rgba(15, 23, 42, 0.85),
+          0 0 10px rgba(248, 250, 252, 0.9);
+        transform: translateX(-1px);
+        transition: left 0.25s ease;
+      }
+      .thresholds {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        margin-top: 6px;
+        color: var(--muted);
+      }
+      .history {
+        margin-top: 16px;
+      }
+      .history h3 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 210px;
+        overflow-y: auto;
+        padding-right: 2px;
+      }
+      .history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 8px;
+        border-radius: 9px;
+        background-color: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(31, 41, 55, 0.8);
+        font-size: 11px;
+      }
+      .history-item span.meta {
+        color: var(--muted);
+      }
+      .history-item span.score {
+        font-variant-numeric: tabular-nums;
+      }
+      .small {
+        font-size: 11px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="card">
+        <div class="card-header">
+          <div class="title-block">
+            <h1>Real‑time AML Risk Engine</h1>
+            <p>Simulate a digital wallet transaction and see the fraud decision in real‑time.</p>
+          </div>
+          <div class="pill">SDG 8 · Target 8.10 · Decent Work & Growth</div>
+        </div>
+        <form id="tx-form">
+          <div class="form-grid">
+            <div class="field">
+              <label for="Time">Time</label>
+              <input id="Time" name="Time" type="text" value="10:35:19" placeholder="HH:MM:SS" required />
+            </div>
+            <div class="field">
+              <label for="Date">Date</label>
+              <input id="Date" name="Date" type="date" value="2022-10-07" required />
+            </div>
+            <div class="field">
+              <label for="Sender_account">Sender account</label>
+              <input
+                id="Sender_account"
+                name="Sender_account"
+                type="text"
+                value="8724731955"
+                placeholder="e.g. 8724731955"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="Receiver_account">Receiver account</label>
+              <input
+                id="Receiver_account"
+                name="Receiver_account"
+                type="text"
+                value="2769355426"
+                placeholder="e.g. 2769355426"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="Amount">Amount</label>
+              <input id="Amount" name="Amount" type="number" min="0" step="0.01" value="1459.15" required />
+            </div>
+            <div class="field">
+              <label for="Payment_currency">Payment currency</label>
+              <select id="Payment_currency" name="Payment_currency">
+                <option>UK pounds</option>
+                <option>USD</option>
+                <option>EUR</option>
+                <option>Dirham</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="Received_currency">Received currency</label>
+              <select id="Received_currency" name="Received_currency">
+                <option>UK pounds</option>
+                <option>USD</option>
+                <option>EUR</option>
+                <option>Dirham</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="Payment_type">Payment type</label>
+              <select id="Payment_type" name="Payment_type">
+                <option>Cash Deposit</option>
+                <option>ACH</option>
+                <option>Cheque</option>
+                <option>Cross-border</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="Sender_bank_location">Sender bank location</label>
+              <select id="Sender_bank_location" name="Sender_bank_location">
+                <option>UK</option>
+                <option>UAE</option>
+                <option>US</option>
+                <option>EU</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="Receiver_bank_location">Receiver bank location</label>
+              <select id="Receiver_bank_location" name="Receiver_bank_location">
+                <option>UK</option>
+                <option>UAE</option>
+                <option>US</option>
+                <option>EU</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <span id="status" class="status ok">Model thresholds tuned for high precision on blocks.</span>
+            <button id="score-btn" class="btn-primary" type="submit">
+              <span class="icon">▶</span>
+              Score transaction
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="card">
+        <div class="card-header">
+          <div class="title-block">
+            <h1>Decision & Risk</h1>
+            <p>Approve, flag for review, or block in milliseconds.</p>
+          </div>
+        </div>
+        <div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px">
+            <div>
+              <div id="decision-badge" class="badge approve">
+                <span>●</span>
+                <span id="decision-text">Approve</span>
+              </div>
+              <div class="score-sub" style="margin-top: 8px">Latest risk score</div>
+              <div class="score-number" id="score-number">0.00</div>
+            </div>
+            <div style="text-align: right">
+              <div class="small">Flag / Block thresholds</div>
+              <div class="small">
+                Flag ≥ <span id="flag-thr">0.00</span><br />
+                Block ≥ <span id="block-thr">0.00</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar">
+            <div class="cursor" id="score-cursor" style="left: 0%"></div>
+          </div>
+          <div class="thresholds">
+            <span>Low risk</span>
+            <span>Higher risk</span>
+          </div>
+          <div class="history">
+            <h3>Recent scores</h3>
+            <div id="history-list" class="history-list"></div>
+          </div>
+          <p class="small" style="margin-top: 10px">
+            This UI is a prototype for a digital wallet’s risk console. No personal identifiers are stored: account IDs are
+            hashed in the model layer.
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      const form = document.getElementById("tx-form");
+      const statusEl = document.getElementById("status");
+      const btn = document.getElementById("score-btn");
+      const decisionBadge = document.getElementById("decision-badge");
+      const decisionText = document.getElementById("decision-text");
+      const scoreNumber = document.getElementById("score-number");
+      const scoreCursor = document.getElementById("score-cursor");
+      const flagThrEl = document.getElementById("flag-thr");
+      const blockThrEl = document.getElementById("block-thr");
+      const historyList = document.getElementById("history-list");
+
+      let thresholds = { flag: 0.5, block: 0.9 };
+
+      function setStatus(text, type = "ok") {
+        statusEl.textContent = text;
+        statusEl.className = "status " + type;
+      }
+
+      function setDecision(decision, score) {
+        decisionBadge.classList.remove("approve", "flag", "block");
+        const d = decision.toLowerCase();
+        decisionBadge.classList.add(d);
+        decisionText.textContent = decision;
+        // show more precision so very small changes are visible
+        scoreNumber.textContent = score.toFixed(6);
+        const pct = Math.max(0, Math.min(100, score * 100));
+        scoreCursor.style.left = pct + "%";
+      }
+
+      function appendHistory(decision, score, amount, crossBorder) {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        const meta = document.createElement("span");
+        meta.className = "meta";
+        meta.textContent = `${crossBorder ? "Cross-border" : "Domestic"} · ${amount.toFixed(2)}`;
+        const right = document.createElement("span");
+        right.className = "score";
+        right.textContent = `${decision} · ${score.toFixed(6)}`;
+        item.appendChild(meta);
+        item.appendChild(right);
+        historyList.prepend(item);
+        while (historyList.children.length > 8) {
+          historyList.removeChild(historyList.lastChild);
+        }
+      }
+
+      async function scoreTransaction(body) {
+        const res = await fetch("/score", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          throw new Error("API error: " + res.status);
+        }
+        return res.json();
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(form).entries());
+        data.Amount = parseFloat(data.Amount);
+
+        btn.disabled = true;
+        setStatus("Scoring transaction…", "ok");
+        try {
+          const out = await scoreTransaction(data);
+          console.log("Score response", out);
+          thresholds = out.thresholds || thresholds;
+          flagThrEl.textContent = thresholds.flag.toFixed(2);
+          blockThrEl.textContent = thresholds.block.toFixed(2);
+          const score = typeof out.risk_score === "number" ? out.risk_score : Number(out.risk_score || 0);
+          setDecision(out.decision, score);
+          const crossBorder = data.Sender_bank_location !== data.Receiver_bank_location;
+          appendHistory(out.decision, score, data.Amount || 0, crossBorder);
+          setStatus("Decision ready. Low scores mean lower estimated laundering risk.", "ok");
+        } catch (err) {
+          console.error(err);
+          setStatus("Could not score transaction. Ensure the API and model are running.", "error");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      // No auto-submit on load; wait for explicit user click to avoid confusion.
+    </script>
+  </body>
+  </html>
+
